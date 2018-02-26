@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="javascripts/aframe.min.js"></script>
+	<script src="javascripts/aframe-gui.min.js"></script>
+	<title></title>
+</head>
+<body>
+<a-scene inspector="url: javascripts/aframe-inspector.min.js">
+
+	<a-sky color="lightblue"></a-sky>
+
+	<a-camera position="0 -2 8">
+		<a-cursor></a-cursor>
+	</a-camera>
+
+	<!-- Linhas do jogo -->
+	<a-entity id="linhas">
+		<a-box id="linha-ver-esq" color="green" height="10" width="0.2" depth="0.2" position="-2 0 0"></a-box>
+		<a-box id="linha-ver-dir" color="green" height="10" width="0.2" depth="0.2" position="2 0 0"></a-box>
+		<a-box id="linha-hor-cima" color="green" height="10" width="0.2" depth="0.2" position="0 2 0" rotation="0 0 90"></a-box>
+		<a-box id="linha-hor-cima" color="green" height="10" width="0.2" depth="0.2" position="0 -2 0" rotation="0 0 90"></a-box>
+	</a-entity>
+
+	<!-- blackline -->
+	<a-box visible='false' id="blackline" color="black" height="12" width="0.3" depth="0.1" position="0 3.5 0.1" rotation="0 0 90"></a-box>
+
+	<!-- <a-entity id="msgfinal" visible="false">
+		<a-text id="msgwinner" value="O jogador ? venceu!" wrap-count=20 position="0 0.5 0.3" align="center"></a-text>
+
+		<a-gui-button 
+	        width="3" height="0.75"
+	        position="0 -0.5 0.3"
+	        onclick="" key-code="32"
+	        value="Jogar novamente!"
+	        font-family="Helvetica"
+	        margin="0 0 0.05 0"
+	    >
+	    </a-gui-button>
+
+	    <a-plane id="" color="black" height="3" width="5" position="0 0 0.3" material="transparent: true; opacity: 0.7"></a-plane>
+    </a-entity> -->
+	
+	<!-- Lugares onde os sinais aparecerão -->
+	<a-plane id="place00" color="#CCC" height="3" width="3" position="-3.5 3.5 0" material="transparent: true; opacity: 0"
+		draw="placex:0; placey:0; position:-3.5 3.5 0"></a-plane>
+
+	<a-plane id="place01" color="#CCC" height="3" width="4" position="0 3.5 0" material="transparent: true; opacity: 0"
+		draw="placex:0; placey:1; position:0 3.5 0"></a-plane>
+
+	<a-plane id="place02" color="#CCC" height="3" width="3" position="3.5 3.5 0" material="transparent: true; opacity: 0"
+		draw="placex:0; placey:2; position:3.5 3.5 0"></a-plane>
+
+	<a-plane id="place10" color="#CCC" height="4" width="3" position="-3.5 0 0" material="transparent: true; opacity: 0"
+		draw="placex:1; placey:0; position:-3.5 0 0"></a-plane>
+
+	<a-plane id="place11" color="#CCC" height="4" width="4" position="0 0 0" material="transparent: true; opacity: 0"
+		draw="placex:1; placey:1; position:0 0 0"></a-plane>
+
+	<a-plane id="place12" color="#CCC" height="4" width="3" position="3.5 0 0" material="transparent: true; opacity: 0"
+		draw="placex:1; placey:2; position:3.5 0 0"></a-plane>
+
+	<a-plane id="place20" color="#CCC" height="3" width="3" position="-3.5 -3.5 0" material="transparent: true; opacity: 0"
+		draw="placex:2; placey:0; position:-3.5 -3.5 0"></a-plane>
+
+	<a-plane id="place21" color="#CCC" height="3" width="4" position="0 -3.5 0" material="transparent: true; opacity: 0"
+		draw="placex:2; placey:1; position:0 -3.5 0"></a-plane>
+
+	<a-plane id="place22" color="#CCC" height="3" width="3" position="3.5 -3.5 0" material="transparent: true; opacity: 0"
+		draw="placex:2; placey:2; position:3.5 -3.5 0"></a-plane>
+
+
+</a-scene>
+<script type="text/javascript">
+	var busyplace = [
+		['','',''],
+		['','',''],
+		['','','']		
+	];
+
+	var player = "x";
+
+	var scene = document.querySelector('a-scene');
+
+	var blackline = document.getElementById('blackline');
+
+	var msgwinner = document.getElementById('msgwinner');
+
+	//
+	// Create Entities 
+	//
+
+	var createBall = function(position)
+	{
+		var ball = document.createElement('a-ring');
+		ball.setAttribute('color','blue');
+		ball.setAttribute('radius-inner','0.8');
+		ball.setAttribute('radius-outer','1');
+		ball.setAttribute('position', position);	
+		scene.appendChild(ball);
+	}
+
+	var createX = function(position)
+	{
+		var x = document.createElement('a-entity');
+		x.setAttribute('id','x');
+		x.setAttribute('position',position);
+
+		var linha1 = document.createElement('a-box');
+		linha1.setAttribute('color','red');
+		linha1.setAttribute('height','2');
+		linha1.setAttribute('width','0.2');
+		linha1.setAttribute('depth','0.1');
+		linha1.setAttribute('rotation','0 0 45');
+
+		var linha2 = document.createElement('a-box');
+		linha2.setAttribute('color','red');
+		linha2.setAttribute('height','2');
+		linha2.setAttribute('width','0.2');
+		linha2.setAttribute('depth','0.1');
+		linha2.setAttribute('rotation','0 0 -45');
+
+		x.appendChild(linha1);
+		x.appendChild(linha2);
+		scene.appendChild(x);
+	}
+
+	//
+	//Functions
+	//
+	var changeplayer = function(){
+		if ( player == "x" ) {
+			player = "ball";
+		} else {
+			player = "x";
+		}
+	}
+
+	var verifyPlayed = function(player){
+
+		//linhas
+		if ( busyplace[0][0]==player && busyplace[0][1]==player && busyplace[0][2]==player) {
+			blackline.setAttribute('visible','true');
+			blackline.setAttribute('position','0 3.5 0.1');
+			msgfinal.setAttribute('visible','true');
+		}
+
+		else if ( busyplace[1][0]==player && busyplace[1][1]==player && busyplace[1][2]==player) {
+			blackline.setAttribute('visible','true');
+			blackline.setAttribute('position','0 0 0.1');
+		}
+
+		else if ( busyplace[2][0]==player && busyplace[2][1]==player && busyplace[2][2]==player) {
+			blackline.setAttribute('visible','true');
+			blackline.setAttribute('position','0 -3.5 0.1');
+		}
+
+		//colunas
+		if ( busyplace[0][0]==player && busyplace[1][0]==player && busyplace[2][0]==player) {
+			blackline.setAttribute('visible','true');
+			blackline.setAttribute('rotation','0 0 0');
+			blackline.setAttribute('position','-3.5 0 0.1');
+		}
+
+		else if ( busyplace[0][1]==player && busyplace[1][1]==player && busyplace[2][1]==player) {
+			blackline.setAttribute('visible','true');
+			blackline.setAttribute('rotation','0 0 0');
+			blackline.setAttribute('position','0 0 0.1');
+		}
+
+		else if ( busyplace[0][2]==player && busyplace[1][2]==player && busyplace[2][2]==player) {
+			blackline.setAttribute('visible','true');
+			blackline.setAttribute('rotation','0 0 0');
+			blackline.setAttribute('position','3.5 0 0.1');
+		}
+
+		// diagonal
+		if ( busyplace[0][0]==player && busyplace[1][1]==player && busyplace[2][2]==player) {
+			blackline.setAttribute('visible','true');
+			blackline.setAttribute('rotation','0 0 45');
+			blackline.setAttribute('position','0 0 0.1');
+		}
+
+		else if ( busyplace[0][2]==player && busyplace[1][1]==player && busyplace[2][0]==player) {
+			blackline.setAttribute('visible','true');
+			blackline.setAttribute('rotation','0 0 -45');
+			blackline.setAttribute('position','0 0 0.1');
+		}
+	}
+	
+	// 
+	// Register Components
+	// 
+
+	//quando clicado no espaço, verificar se está vazio, se sim, marcar X ou O, caso contrário, não marcar nada
+	AFRAME.registerComponent('draw',{
+		init:function(){
+			var data = this.data;
+
+			this.el.addEventListener('click',function(){			
+				//verificar se está vazio
+				if( busyplace[data.placex][data.placey] == '' ) //está vazio?
+				{
+					busyplace[data.placex][data.placey] = player;
+
+					if ( player == "x" ) {
+						createX(data.position);
+					} else {
+						createBall(data.position);
+					}
+
+					verifyPlayed(player);
+					changeplayer();	
+				}
+			});
+		}
+	});
+
+</script>
+</body>
+</html>
